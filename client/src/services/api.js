@@ -3,10 +3,19 @@
  * Handles credentialed requests with HttpOnly cookies and error normalization.
  */
 
-const API_BASE_URL =
+const rawBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
   'http://localhost:5000/api';
+
+const normalizeApiBaseUrl = (url) => {
+  const clean = (url || '').trim().replace(/\/+$/, '');
+  if (!clean) return '/api';
+  if (clean.endsWith('/api')) return clean;
+  return `${clean}/api`;
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(rawBaseUrl);
 
 class ApiService {
   async request(endpoint, options = {}) {

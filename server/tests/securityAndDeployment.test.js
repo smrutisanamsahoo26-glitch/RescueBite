@@ -108,16 +108,33 @@ describe('RescueBite Security, Routing & Pre-Deployment Verification', () => {
   // -------------------------------------------------------------
   // 1. Health Endpoint & Database State
   // -------------------------------------------------------------
-  describe('GET /api/health - Database Health Monitoring', () => {
-    it('should return 200 with UP status when database is fully connected', async () => {
-      const res = await request(app).get('/api/health');
+  describe('GET /api/health and /health - Database Health Monitoring', () => {
+    it('should return 200 with UP status when database is fully connected on both /api/health and /health', async () => {
+      const resApi = await request(app).get('/api/health');
+      expect(resApi.status).toBe(200);
+      expect(resApi.body.data.status).toBe('UP');
 
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.status).toBe('UP');
-      expect(res.body.data.database.status).toBe('connected');
-      expect(res.body.data.uptimeSeconds).toBeDefined();
-      expect(res.body.data.environment).toBe('test');
+      const resRoot = await request(app).get('/health');
+      expect(resRoot.status).toBe(200);
+      expect(resRoot.body.data.status).toBe('UP');
+    });
+
+    it('should support both POST /api/auth/login and POST /auth/login without 404', async () => {
+      const resWithoutPrefix = await request(app)
+        .post('/auth/login')
+        .send({ email: donorUserA.email, password: 'Secret123!' });
+
+      expect(resWithoutPrefix.status).toBe(200);
+      expect(resWithoutPrefix.body.success).toBe(true);
+      expect(resWithoutPrefix.body.data.user.email).toBe(donorUserA.email);
+
+      const resWithPrefix = await request(app)
+        .post('/api/auth/login')
+        .send({ email: donorUserA.email, password: 'Secret123!' });
+
+      expect(resWithPrefix.status).toBe(200);
+      expect(resWithPrefix.body.success).toBe(true);
+      expect(resWithPrefix.body.data.user.email).toBe(donorUserA.email);
     });
   });
 

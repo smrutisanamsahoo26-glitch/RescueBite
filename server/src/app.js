@@ -81,18 +81,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // 4. Rate Limiting
-app.use('/api', generalRateLimiter);
+app.use(
+  ['/api', '/auth', '/organizations', '/listings', '/reservations', '/tasks', '/admin', '/reports', '/analytics'],
+  generalRateLimiter
+);
 
 // 5. Swagger API Documentation
 try {
   const swaggerDocument = yamljs.load(path.join(__dirname, '../swagger.yaml'));
-  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use(['/api/docs', '/docs'], swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch (err) {
   console.warn('[Swagger] Documentation file could not be loaded:', err.message);
 }
 
 // 6. Health Check Endpoint (With Database Connectivity Verification)
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   const dbReadyState = mongoose.connection.readyState;
   const isDbConnected = dbReadyState === 1;
   const dbStatusMap = {
@@ -126,15 +129,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 7. Mount Core API Routers
-app.use('/api/auth', authRoutes);
-app.use('/api/organizations', orgRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// 7. Mount Core API Routers (supports both /api/* and root fallback /*)
+const mountRouter = (path, router) => {
+  app.use(`/api${path}`, router);
+  app.use(path, router);
+};
+
+mountRouter('/auth', authRoutes);
+mountRouter('/organizations', orgRoutes);
+mountRouter('/listings', listingRoutes);
+mountRouter('/reservations', reservationRoutes);
+mountRouter('/tasks', taskRoutes);
+mountRouter('/admin', adminRoutes);
+mountRouter('/reports', reportRoutes);
+mountRouter('/analytics', analyticsRoutes);
 
 // 8. 404 Route Handler
 app.use((req, res, next) => {

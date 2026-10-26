@@ -172,20 +172,20 @@ The map interface ([`FoodMap.jsx`](file:///C:/Users/Chinku/OneDrive/Desktop/MERN
 
 ## 7. Automated Test Suite
 
-RescueBite includes **69 automated unit and integration tests across 6 test suites** verifying authentication, organizations, spatial discovery, concurrency overbooking prevention, state machines, and code security:
+RescueBite includes **70 automated unit and integration tests across 6 test suites** verifying authentication, organizations, spatial discovery, concurrency overbooking prevention, state machines, and code security:
 
 ```bash
 cd server
 npm test
 ```
 
-### Test Suite Summary (69 Passing Tests):
+### Test Suite Summary (70 Passing Tests):
 - `tests/auth.test.js` (13 tests): Registration, login, password hashing, HttpOnly cookies, RBAC, profile updates.
 - `tests/organization.test.js` (10 tests): NGO verification applications, admin review queue, document privacy.
 - `tests/listing.test.js` (7 tests): Spatial queries, weighted recipient matching engine, ownership enforcement.
 - `tests/reservation.test.js` (9 tests): Concurrent race conditions (zero overbooking), idempotency keys, exactly-once inventory release.
 - `tests/workflows.test.js` (16 tests): Volunteer mission concurrency, state transitions, SHA-256 code hashes, code reuse protection, cold-chain temp logs, admin account suspension, analytics accuracy, idempotent background expiry sweeps, real-time socket authentication.
-- `tests/securityAndDeployment.test.js` (14 tests): Live database health status & disconnect handling, CORS allowlist & untrusted origin rejection, static route priority (`/donor/mine` vs `/:id`), cross-role 403 access control, IDOR ownership protection, and high-concurrency reservation stress test.
+- `tests/securityAndDeployment.test.js` (15 tests): Live database health status & disconnect handling, CORS allowlist & untrusted origin rejection, static route priority (`/donor/mine` vs `/:id`), dual route prefix verification (`/auth/login` and `/api/auth/login`), cross-role 403 access control, IDOR ownership protection, and high-concurrency reservation stress test.
 
 ---
 
