@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UtensilsCrossed, Building2, HeartHandshake, Truck, ShieldCheck } from 'lucide-react';
+import { UtensilsCrossed, Building2, HeartHandshake, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
 import { DemoBadge } from '../../components/common/DemoBadge';
@@ -16,21 +16,35 @@ export const RegisterPage = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [taxId, setTaxId] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register({
-      name,
-      organizationName,
-      email,
-      phone,
-      role,
-      taxId
-    });
+    setErrorMessage('');
+    setSubmitting(true);
 
-    if (role === 'donor') navigate('/donor/dashboard');
-    else if (role === 'recipient') navigate('/recipient/dashboard');
-    else if (role === 'volunteer') navigate('/volunteer/dashboard');
+    try {
+      const res = await register({
+        name: name.trim(),
+        organizationName: organizationName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        password,
+        role,
+        taxId: taxId.trim()
+      });
+
+      const userRole = res?.user?.role || role;
+      if (userRole === 'donor') navigate('/donor/dashboard', { replace: true });
+      else if (userRole === 'recipient') navigate('/recipient/dashboard', { replace: true });
+      else if (userRole === 'volunteer') navigate('/volunteer/dashboard', { replace: true });
+      else navigate('/', { replace: true });
+    } catch (err) {
+      setErrorMessage(err.message || 'Registration failed. Please check your information and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -98,6 +112,13 @@ export const RegisterPage = () => {
               </button>
             </div>
           </div>
+
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -186,17 +207,24 @@ export const RegisterPage = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                minLength={8}
+                autoComplete="new-password"
                 required
                 className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800"
               />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Must be at least 8 characters with at least one letter and one number.
+              </span>
             </div>
 
             <Button
               type="submit"
               fullWidth
               size="lg"
+              disabled={submitting}
             >
-              Create {role === 'donor' ? 'Donor' : role === 'recipient' ? 'Recipient' : 'Volunteer'} Account
+              {submitting ? 'Creating Account...' : `Create ${role === 'donor' ? 'Donor' : role === 'recipient' ? 'Recipient' : 'Volunteer'} Account`}
             </Button>
           </form>
 

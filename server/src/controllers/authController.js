@@ -9,9 +9,10 @@ import { ROLES } from '../constants/roles.js';
 export const register = async (req, res, next) => {
   try {
     const { name, email, password, phone, role, organizationName, address, location } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
     // 1. Check if email already registered
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return next(new AppError('An account with this email address already exists.', 409));
     }
@@ -24,10 +25,10 @@ export const register = async (req, res, next) => {
 
     // 4. Create User
     const user = await User.create({
-      name,
-      email,
+      name: (name || '').trim(),
+      email: normalizedEmail,
       passwordHash,
-      phone,
+      phone: (phone || '').trim(),
       role: assignedRole,
       address: address || {},
       location: location || { type: 'Point', coordinates: [-73.9851, 40.7484] }
@@ -39,7 +40,7 @@ export const register = async (req, res, next) => {
         name: organizationName,
         type: assignedRole === ROLES.DONOR ? 'restaurant' : 'community_pantry',
         registrationNumber: `PENDING-REG-${Date.now()}`,
-        contactEmail: email,
+        contactEmail: normalizedEmail,
         contactPhone: phone,
         address: address || {},
         location: location || { type: 'Point', coordinates: [-73.9851, 40.7484] },
@@ -85,9 +86,10 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
     // 1. Find user by email including passwordHash
-    const user = await User.findOne({ email }).select('+passwordHash').populate('organizationId');
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash').populate('organizationId');
     if (!user) {
       return next(new AppError('Invalid email or password.', 401));
     }
