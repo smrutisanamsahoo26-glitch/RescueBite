@@ -51,22 +51,36 @@ const parseAllowedOrigins = () => {
   return Array.from(new Set([...localDefaults, ...configured]));
 };
 
+export const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, '');
+  const allowed = parseAllowedOrigins();
+  if (allowed.includes(cleanOrigin)) return true;
+
+  if (
+    ENV.NODE_ENV !== 'production' &&
+    /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)
+  ) {
+    return true;
+  }
+
+  // Allow all Vercel deployment domains (*.vercel.app)
+  try {
+    const parsed = new URL(cleanOrigin);
+    if (parsed.hostname.endsWith('.vercel.app') || parsed.hostname === 'vercel.app') {
+      return true;
+    }
+  } catch {}
+
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman, server-to-server)
-      if (!origin) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
-      const cleanOrigin = origin.replace(/\/+$/, '');
-      const allowed = parseAllowedOrigins();
-      if (
-        allowed.includes(cleanOrigin) ||
-        (ENV.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
-      ) {
-        return callback(null, true);
-      }
-      // Untrusted cross-origin request rejected
       return callback(null, false);
     },
     credentials: true,

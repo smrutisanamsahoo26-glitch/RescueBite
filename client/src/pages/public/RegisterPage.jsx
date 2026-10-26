@@ -22,6 +22,21 @@ export const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
+
+    if (password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!/^(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+      setErrorMessage('Password must contain at least one letter and one number.');
+      return;
+    }
+    const cleanPhone = phone.trim();
+    if (cleanPhone.length < 7 || cleanPhone.length > 20) {
+      setErrorMessage('Please provide a valid phone number (between 7 and 20 digits).');
+      return;
+    }
+
     setSubmitting(true);
 
     try {

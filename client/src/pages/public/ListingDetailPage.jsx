@@ -147,7 +147,7 @@ export const ListingDetailPage = () => {
           {/* Main Photo */}
           <div className="relative rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 aspect-video shadow-sm">
             <img
-              src={listing.images[0]}
+              src={listing.images?.[0]?.url || listing.images?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'}
               alt={listing.title}
               className="w-full h-full object-cover"
             />

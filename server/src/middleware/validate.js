@@ -9,7 +9,8 @@ export const handleValidation = (req, res, next) => {
       message: err.msg,
       value: err.value
     }));
-    return next(new AppError('Invalid input provided', 400, formatted));
+    const primaryMessage = formatted.map(f => f.message).filter(Boolean).join('. ') || 'Invalid input provided';
+    return next(new AppError(primaryMessage, 400, formatted));
   }
   next();
 };

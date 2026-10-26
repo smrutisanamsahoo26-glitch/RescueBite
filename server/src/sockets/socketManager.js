@@ -19,17 +19,34 @@ const parseSocketOrigins = () => {
   return Array.from(new Set([...defaults, ...configured]));
 };
 
+const isAllowedSocketOrigin = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, '');
+  const allowed = parseSocketOrigins();
+  if (allowed.includes(cleanOrigin)) return true;
+
+  if (
+    ENV.NODE_ENV !== 'production' &&
+    /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)
+  ) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(cleanOrigin);
+    if (parsed.hostname.endsWith('.vercel.app') || parsed.hostname === 'vercel.app') {
+      return true;
+    }
+  } catch {}
+
+  return false;
+};
+
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
       origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const cleanOrigin = origin.replace(/\/+$/, '');
-        const allowed = parseSocketOrigins();
-        if (
-          allowed.includes(cleanOrigin) ||
-          (ENV.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
-        ) {
+        if (isAllowedSocketOrigin(origin)) {
           return callback(null, true);
         }
         return callback(new Error(`WebSocket origin '${origin}' not allowed`), false);

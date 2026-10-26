@@ -158,7 +158,7 @@ export const DonorDashboard = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <img
-                          src={listing.images[0]}
+                          src={listing.images?.[0]?.url || listing.images?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'}
                           alt={listing.title}
                           className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                         />

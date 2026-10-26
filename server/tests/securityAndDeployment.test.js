@@ -401,9 +401,9 @@ describe('RescueBite Security, Routing & Pre-Deployment Verification', () => {
   });
 
   // -------------------------------------------------------------
-  // 7. Missing Environment Variable Startup Safety
+  // 7. Missing Environment Variable Startup Safety & Vercel CORS
   // -------------------------------------------------------------
-  describe('Missing Environment Variables Safety', () => {
+  describe('Missing Environment Variables Safety & CORS Preflight', () => {
     it('should validate critical configuration requirements on startup', () => {
       const originalMongoUri = process.env.MONGODB_URI;
       const originalJwtSecret = process.env.JWT_SECRET;
@@ -418,6 +418,32 @@ describe('RescueBite Security, Routing & Pre-Deployment Verification', () => {
         process.env.MONGODB_URI = originalMongoUri;
         process.env.JWT_SECRET = originalJwtSecret;
       }
+    });
+
+    it('should allow CORS preflight requests from dynamic Vercel deployment domains', async () => {
+      const res = await request(app)
+        .options('/api/listings')
+        .set('Origin', 'https://client-sand-seven-cd9ajowftj.vercel.app')
+        .set('Access-Control-Request-Method', 'GET')
+        .set('Access-Control-Request-Headers', 'Authorization, Content-Type');
+
+      expect(res.headers['access-control-allow-origin']).toBe('https://client-sand-seven-cd9ajowftj.vercel.app');
+      expect(res.headers['access-control-allow-credentials']).toBe('true');
+    });
+
+    it('should return specific descriptive validation error when password is weak', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'New Tester',
+          email: 'weak.password@test.com',
+          phone: '+91 99999 88888',
+          password: 'simple' // under 8 chars and no number
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/Password must be at least 8 characters/i);
     });
   });
 });

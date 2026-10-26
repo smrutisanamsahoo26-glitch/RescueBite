@@ -51,7 +51,14 @@ class ApiService {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        const error = new Error(data.message || `API error (${response.status})`);
+        let errorMsg = data.message || `API error (${response.status})`;
+        if (Array.isArray(data.errors) && data.errors.length > 0) {
+          const detailMessages = data.errors.map(e => e.message || e.msg).filter(Boolean);
+          if (detailMessages.length > 0) {
+            errorMsg = detailMessages.join('. ');
+          }
+        }
+        const error = new Error(errorMsg);
         error.status = response.status;
         error.data = data;
         throw error;
