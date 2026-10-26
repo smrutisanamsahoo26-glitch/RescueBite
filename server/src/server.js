@@ -15,19 +15,20 @@ const startServer = async () => {
     // Validate required environment variables
     validateEnv();
 
-    await connectDB();
-
-    // Start background idempotent expiry processor
-    startExpiryScheduler();
-
+    // Start listening on port immediately so Render / cloud host detectors succeed
     server.listen(ENV.PORT, '0.0.0.0', () => {
       console.log(`[RescueBite Server] Running on http://0.0.0.0:${ENV.PORT}`);
       console.log(`[RescueBite Server] API Documentation: http://localhost:${ENV.PORT}/api/docs`);
       console.log(`[RescueBite Server] Health Check: http://localhost:${ENV.PORT}/api/health`);
     });
+
+    // Connect to MongoDB Atlas (with automatic reconnection retry)
+    await connectDB();
+
+    // Start background idempotent expiry processor
+    startExpiryScheduler();
   } catch (err) {
-    console.error('[RescueBite Server] Failed to start:', err.message);
-    process.exit(1);
+    console.error('[RescueBite Server] Startup error:', err.message);
   }
 };
 
