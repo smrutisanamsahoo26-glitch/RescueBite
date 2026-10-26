@@ -1,0 +1,22 @@
+{
+  "name": "rescuebite",
+  "version": "1.0.0",
+  "description": "RescueBite - Surplus Food Rescue & Redistribution Network",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0 <24.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "client:dev": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "client:lint": "npm --prefix client run lint",
+    "server:dev": "npm --prefix server run dev",
+    "server:start": "npm --prefix server start",
+    "server:test": "npm --prefix server test",
+    "server:seed": "npm --prefix server run seed"
+  },
+  "author": "RescueBite Team",
+  "license": "ISC"
+}
